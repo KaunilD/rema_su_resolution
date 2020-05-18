@@ -134,7 +134,7 @@ if __name__ == "__main__":
     name, ext = get_image_name(args.inp)
 
     tif_ds = gdal.Open(args.inp)
-    print(tif_ds.GetRasterBand(1).GetStatistics(0, 0))
+    min, max, _, _ = tif_ds.GetRasterBand(1).GetStatistics(0, 0)
     tif_ds = gdal.Translate(
         "{}_proc.tif".format(name), args.inp,
         format='GTiff', outputType=gdal.GDT_Byte,
@@ -159,6 +159,6 @@ if __name__ == "__main__":
             width = w,
             height = h,
             format='PNG'
-            # scaleParams=[args]
+            scaleParams=[min, max, args.min, args.max]
         )
     )
