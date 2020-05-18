@@ -106,15 +106,15 @@ def create_args():
 
     parser.add_argument(
         "--max",
-        type=float,
-        default=1.0,
+        type=int,
+        default=1,
         help="max value for min-max normalization"
     )
 
     parser.add_argument(
         "--min",
-        type=float,
-        default=0.0,
+        type=int,
+        default=0,
         help="min value for min-max normalization"
     )
 
@@ -135,6 +135,7 @@ if __name__ == "__main__":
 
     tif_ds = gdal.Open(args.inp)
     min, max, _, _ = tif_ds.GetRasterBand(1).GetStatistics(0, 0)
+    
     tif_ds = gdal.Translate(
         "{}_proc.tif".format(name), args.inp,
         format='GTiff', outputType=gdal.GDT_Byte,
@@ -149,16 +150,16 @@ if __name__ == "__main__":
     h = tif_ds.RasterYSize
 
     ext_ = get_extent(gt, w, h)
+    
     # get raster data
     print("Rasterizing {} to {}".format(args.inp, args.out))
-    print("\t",ext_)
     print("\tWIDTH = {} HEIGHT = {}".format(w, h))
     ds = gdal.Translate(
         destName=args.out, srcDS=tif_ds,
         options=gdal.TranslateOptions(
             width = w,
             height = h,
-            format='PNG'
-            scaleParams=[min, max, args.min, args.max]
+            format='PNG',
+            scaleParams=[[min, max, args.min, args.max]]
         )
     )
