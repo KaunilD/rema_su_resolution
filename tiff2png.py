@@ -93,7 +93,7 @@ def create_args():
         description="Converts DEM Tiffs to PNG"
     )
     parser.add_argument(
-        "--in",
+        "--inp",
         type=str,
         help="input DEM.",
     )
@@ -129,14 +129,14 @@ if __name__ == "__main__":
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
 
-    print("Processing: {}".format(args.in))
+    print("Processing: {}".format(args.inp))
 
-    name, ext = get_image_name(args.in)
+    name, ext = get_image_name(args.inp)
 
-    tif_ds = gdal.Open(args.in)
-
+    tif_ds = gdal.Open(args.inp)
+    print(tif_ds.GetRasterBand(1).GetStatistics(0, 0))
     tif_ds = gdal.Translate(
-        "{}_proc.tif".format(name), args.in,
+        "{}_proc.tif".format(name), args.inp,
         format='GTiff', outputType=gdal.GDT_Byte,
         bandList=[1],
         scaleParams=[
@@ -150,14 +150,12 @@ if __name__ == "__main__":
 
     ext_ = get_extent(gt, w, h)
     # get raster data
-    print("Rasterizing {} to {}".format(args.in, args.out))
+    print("Rasterizing {} to {}".format(args.inp, args.out))
     print("\t",ext_)
     print("\tWIDTH = {} HEIGHT = {}".format(w, h))
     ds = gdal.Translate(
         destName=args.out, srcDS=tif_ds,
         options=gdal.TranslateOptions(
-            burnValues=255,
-            allTouched=True,
             width = w,
             height = h,
             format='PNG'
