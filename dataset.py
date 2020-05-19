@@ -12,16 +12,17 @@ Image.MAX_IMAGE_PIXELS = None
 class REMADataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, input_pth, target_pth, scale_factor=2, patch_size=256, transform=None):
-        self.pairs = []
-
+    def __init__(self, input_pth, target_pth, split, scale_factor=2, patch_size=256, transform=None):
         self.input_pth = input_pth
         self.target_pth = target_pth
+        self.split = split
         self.scale_factor = scale_factor
         self.patch_size = patch_size
         self.transform = transform
 
-        self.gen_pairs()
+        self.pairs = self.gen_pairs()
+        a = int(len(self.pairs)*self.split)
+        self.pairs = self.pairs[:a]
 
     def __len__(self):
         return len(self.pairs)
@@ -37,7 +38,7 @@ class REMADataset(Dataset):
         return image_out
 
     def gen_pairs(self):
-
+        pairs = []
         input = Image.open(self.input_pth)
         target = Image.open(self.target_pth)
 
@@ -59,15 +60,16 @@ class REMADataset(Dataset):
                     break
                 inp = input[i:i+patch_size, j:j+patch_size]
                 tar = target[i*2:i*2+patch_size*2, j*2:j*2:patch_size*2]
-                
+                pairs.append([inp, tar])
 
-
+        return pairs
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
         if self.transform:
-            sample = self.transform(sample)
+            in, out = self.pairs[idx]
+            sample = [self.transform(in), self.transform(out)]
 
         return sample
 
