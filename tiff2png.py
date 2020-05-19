@@ -6,11 +6,6 @@ from osgeo import gdal, ogr, osr
 import os
 import argparse
 
-OUT_SUFFIX = '../data/pre-processed/landsat/'
-GEOTIF_PATH = '../data/geotiffs/landsat/tiles/*.tif'
-SHP_PATH = '../data/shapefiles/shapefiles/landsat'
-
-SHP_MASTER = '../data/shapefiles/PGC_LIMA_VALID_3031-84.shp'
 
 def get_extent(gt,cols,rows):
     ''' Return list of corner coordinates from a geotransform

@@ -2,10 +2,15 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# images
 *.png
 *.tif
+*.xml
+
 # C extensions
 *.so
+
 
 # Distribution / packaging
 .Python
