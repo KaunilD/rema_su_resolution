@@ -7,6 +7,8 @@ import torch
 from torchvision import transforms, utils
 from torch.utils.data import Dataset, DataLoader
 
+Image.MAX_IMAGE_PIXELS = None
+
 class REMADataset(Dataset):
     """Face Landmarks dataset."""
 
@@ -57,8 +59,7 @@ class REMADataset(Dataset):
                     break
                 inp = input[i:i+patch_size, j:j+patch_size]
                 tar = target[i*2:i*2+patch_size*2, j*2:j*2:patch_size*2]
-                print(tar.shape)
-
+                
 
 
 
@@ -102,5 +103,5 @@ def create_args():
 
 if __name__=="__main__":
     args = create_args()
-    
+
     dataset = REMADataset(args.inp, args.out)
