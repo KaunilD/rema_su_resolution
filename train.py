@@ -1,6 +1,9 @@
 
+import argparse
+from tqdm import tqdm
 
 import torch
+import torch.nn as nn
 import torchvision.transforms as transforms
 import torch.utils.data as torch_data
 
@@ -59,6 +62,13 @@ def create_args():
         help="batch size.",
         default=32
     )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        help="epochs.",
+        default=100
+    )
+
 
     parser.add_argument(
         "--split",
@@ -131,7 +141,8 @@ def test(model, optimizer, device, data_loader):
 
 if __name__=="__main__":
     args = create_args()
-
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    
     train_dataset = REMADataset(
         input_pth=args.inp, target_pth=args.out,
         split=(1.0-args.split), scale_factor=args.scale_factor,
