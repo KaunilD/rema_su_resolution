@@ -1,6 +1,7 @@
 
 import argparse
 from tqdm import tqdm
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -112,32 +113,35 @@ def train(model, optimizer, device, data_loader):
 
         output = model(image)
         loss = target - output
+        loss = loss.sum()
         loss.backward()
         train_loss += loss.item()
 
         optimizer.step()
         optimizer.zero_grad()
         tbar.set_description('Train loss: %.3f' % (train_loss / (i + 1)))
-    return (train_loss/num_samples).item()
+    return (train_loss/num_samples)
 
-def test(model, optimizer, device, data_loader):
+def test(model, device, data_loader):
     model.eval()
     val_loss = 0.0
 
-    tbar = tqdm(dataloader)
-    num_samples = len(dataloader)
+    tbar = tqdm(data_loader)
+    num_samples = len(data_loader)
 
     with torch.no_grad():
-        image, target = sample[0].float(), sample[1].float()
-        image, target = image.to(device), target.to(device)
+        for i, sample in enumerate(tbar):
+                    
+            image, target = sample[0].float(), sample[1].float()
+            image, target = image.to(device), target.to(device)
 
-        output = model(image)
-        loss = target - output
+            output = model(image)
+            loss = target - output
+            loss = loss.sum()
+            val_loss+=loss.item()
+            tbar.set_description('Val loss: %.3f' % (val_loss / (i + 1)))
 
-        val_loss+=loss.item()
-        tbar.set_description('Val loss: %.3f' % (val_loss / (i + 1)))
-
-    return (train_loss/num_samples).item()
+    return (val_loss/num_samples)
 
 if __name__=="__main__":
     args = create_args()
@@ -185,10 +189,15 @@ if __name__=="__main__":
     train_log = []
     for epoch in range(args.epochs):
         train_loss = train(model, optimizer, device, train_dataloader)
-        val_loss = test(model, device, val_dataloader)
+        val_loss = test(model, device, test_dataloader)
 
         model_save_str = '{}/{}-{}.{}'.format(
             args.checkpoint_save_path, args.checkpoint_prefix, epoch, "pth")
+        
+        state = {
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict()
+        }
 
         torch.save(state, model_save_str)
 

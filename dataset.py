@@ -29,7 +29,7 @@ class REMADataset(Dataset):
     def __len__(self):
         return len(self.pairs)
     def gen_pairs(self):
-        pairs   = []
+        inputs, targets   = [], []
         image   = Image.open(self.input_pth)
         target  = Image.open(self.target_pth)
         
@@ -39,16 +39,26 @@ class REMADataset(Dataset):
         h, w    = image.shape
 
         for i in range(0, h, self.patch_size):
-            if 2*(i+self.patch_size) > h:
+            if (i+self.patch_size) > h:
                 break
             for j in range(0, w, self.patch_size):
-                if 2*(j + self.patch_size) > w:
+                if (j + self.patch_size) > w:
                     break
                 inp = image[i:i+self.patch_size, j:j+self.patch_size]
-                tar = target[i*2:i*2+self.patch_size*2, j*2:j*2:self.patch_size*2]
-                pairs.append([inp, tar])
+                inputs.append(inp)
+        
+        h, w    = target.shape
+        for i in range(0, h, self.patch_size*self.scale_factor):
+            if (i+self.patch_size*self.scale_factor) > h:
+                break
+            for j in range(0, w, self.patch_size*self.scale_factor):
+                if (j + self.patch_size*self.scale_factor) > w:
+                    break
+                tar = target[i:i+self.patch_size*self.scale_factor, j:j+self.patch_size*self.scale_factor]
+                targets.append(tar)
 
-        return pairs
+        assert(len(inputs)==len(targets))
+        return list(zip(inputs, targets))
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
