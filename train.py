@@ -98,6 +98,13 @@ def create_args():
     )
 
 
+    parser.add_argument(
+        "--restart-checkpoint",
+        type=str,
+        help="restart training from a checkpoint."
+    )
+
+
     return parser.parse_args()
 
 def train(model, optimizer, device, data_loader):
@@ -112,8 +119,8 @@ def train(model, optimizer, device, data_loader):
         image, target = image.to(device), target.to(device)
 
         output = model(image)
-        loss = target - output
-        loss = loss.sum()
+        loss = torch.abs(target - output)
+        loss = loss.sum()/16
         loss.backward()
         train_loss += loss.item()
 
@@ -136,8 +143,8 @@ def test(model, device, data_loader):
             image, target = image.to(device), target.to(device)
 
             output = model(image)
-            loss = target - output
-            loss = loss.sum()
+            loss = torch.abs(target - output)
+            loss = loss.sum()/16
             val_loss+=loss.item()
             tbar.set_description('Val loss: %.3f' % (val_loss / (i + 1)))
 
@@ -186,6 +193,16 @@ if __name__=="__main__":
     optimizer = torch.optim.Adam(
         lr=args.lr, weight_decay=args.lr_decay, params= model.parameters())
 
+
+    if args.restart_checkpoint:
+        print("Restrating from: {}".format(args.restart_checkpoint))
+        checkpoint = torch.load(args.restart_checkpoint)
+        model.load_state_dict(checkpoint["model"])
+        model.to(device)
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        for g in optimizer.param_groups:
+            g['lr'] = args.lr
+
     train_log = []
     for epoch in range(args.epochs):
         train_loss = train(model, optimizer, device, train_dataloader)
@@ -204,6 +221,6 @@ if __name__=="__main__":
         print(epoch, train_loss, val_loss)
         train_log.append([train_loss, val_loss])
 
-        np.save("train_log_{}".format(args.checkpoint_prefix), train_log)
+        np.save("{}/train_log_{}".format(args.checkpoint_save_path, args.checkpoint_prefix), train_log)
 
     print(epoch, train_loss, val_loss)

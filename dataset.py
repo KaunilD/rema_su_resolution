@@ -1,4 +1,5 @@
 import os
+import cv2
 from skimage import io, transform
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,7 +38,7 @@ class REMADataset(Dataset):
         target  = np.asarray(target, dtype=np.uint8)
         
         h, w    = image.shape
-
+        counter = 0
         for i in range(0, h, self.patch_size):
             if (i+self.patch_size) > h:
                 break
@@ -46,8 +47,11 @@ class REMADataset(Dataset):
                     break
                 inp = image[i:i+self.patch_size, j:j+self.patch_size]
                 inputs.append(inp)
-        
+                cv2.imwrite("debug/{}_inp.png".format(counter), inp)
+                counter+=1
+
         h, w    = target.shape
+        counter = 0
         for i in range(0, h, self.patch_size*self.scale_factor):
             if (i+self.patch_size*self.scale_factor) > h:
                 break
@@ -56,7 +60,9 @@ class REMADataset(Dataset):
                     break
                 tar = target[i:i+self.patch_size*self.scale_factor, j:j+self.patch_size*self.scale_factor]
                 targets.append(tar)
-
+                cv2.imwrite("debug/{}_tar.png".format(counter), tar)
+                counter+=1
+ 
         assert(len(inputs)==len(targets))
         return list(zip(inputs, targets))
 
